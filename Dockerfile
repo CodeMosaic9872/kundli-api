@@ -35,6 +35,8 @@ RUN apk add --no-cache \
     dumb-init \
     build-base \
     python3 \
+    python3-dev \
+    py3-setuptools \
     make \
     g++ \
     && rm -rf /var/cache/apk/*
@@ -60,7 +62,7 @@ COPY . .
 RUN npm run build
 
 # Clean up build tools to reduce image size
-RUN apk del build-base python3 make g++
+RUN apk del build-base python3 python3-dev py3-setuptools make g++
 
 # Create logs directory
 RUN mkdir -p logs && chown -R kundli:nodejs logs
