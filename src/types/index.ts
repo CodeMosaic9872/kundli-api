@@ -71,6 +71,10 @@ export interface AstrologicalData {
   ketuPosition: number;
   rahuPosition: number;
   houseCusps: number[];
+  // Enhanced data for advanced analysis
+  dashaPeriod?: DashaPeriod;
+  currentTransits?: PlanetaryTransit[];
+  planetaryAspects?: PlanetaryAspect[];
 }
 
 export interface NakshatraInfo {
@@ -113,4 +117,80 @@ export class CalculationError extends KundliError {
   constructor(message: string) {
     super(message, 'CALCULATION_ERROR', 500);
   }
+}
+
+// Enhanced astrological types for advanced analysis
+
+export interface DashaPeriod {
+  currentDasha: {
+    planet: string;
+    startDate: Date;
+    endDate: Date;
+    duration: number; // in years
+    remainingYears: number;
+    description: string;
+  };
+  currentAntardasha: {
+    planet: string;
+    startDate: Date;
+    endDate: Date;
+    duration: number; // in months
+    remainingMonths: number;
+    description: string;
+  };
+  currentPratyantardasha?: {
+    planet: string;
+    startDate: Date;
+    endDate: Date;
+    duration: number; // in days
+    remainingDays: number;
+    description: string;
+  };
+  nextDasha: {
+    planet: string;
+    startDate: Date;
+    endDate: Date;
+    description: string;
+  };
+}
+
+export interface PlanetaryTransit {
+  planet: string;
+  currentSign: string;
+  currentHouse: number;
+  nextSign?: string;
+  nextHouse?: number;
+  transitDate?: Date;
+  description: string;
+  influence: 'Positive' | 'Negative' | 'Neutral';
+  intensity: number; // 1-10 scale
+}
+
+export interface PlanetaryAspect {
+  planet1: string;
+  planet2: string;
+  aspectType: 'Conjunction' | 'Opposition' | 'Trine' | 'Square' | 'Sextile' | 'Quincunx';
+  orb: number; // degrees of separation
+  strength: 'Strong' | 'Moderate' | 'Weak';
+  influence: 'Positive' | 'Negative' | 'Neutral';
+  description: string;
+}
+
+export interface EnhancedMatchResult extends MatchResult {
+  dashaCompatibility: {
+    personADasha: DashaPeriod;
+    personBDasha: DashaPeriod;
+    compatibility: 'Excellent' | 'Good' | 'Average' | 'Poor';
+    description: string;
+  };
+  transitAnalysis: {
+    currentTransits: PlanetaryTransit[];
+    mutualInfluence: string;
+    recommendations: string[];
+  };
+  planetaryAspects: {
+    aspects: PlanetaryAspect[];
+    overallHarmony: number; // 1-10 scale
+    keyAspects: PlanetaryAspect[];
+  };
 }

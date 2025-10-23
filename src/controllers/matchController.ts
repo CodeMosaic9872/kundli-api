@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { MatchService } from '../services/matchService';
-import { ApiResponse, MatchRequest, MatchResult } from '../types';
+import { EnhancedMatchService } from '../services/enhancedMatchService';
+import { ApiResponse, MatchRequest, MatchResult, EnhancedMatchResult } from '../types';
 import { ErrorHandler } from '../middleware/errorHandler';
 
 export class MatchController {
@@ -139,6 +140,63 @@ export class MatchController {
       success: true,
       data: summary,
       message: 'Match summary generated successfully'
+    };
+
+    res.status(200).json(response);
+  });
+
+  /**
+   * Calculate enhanced match compatibility with Dasha and transit analysis
+   */
+  static calculateEnhancedMatch = ErrorHandler.asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { personA, personB }: MatchRequest = req.body;
+
+    // Validate request body
+    if (!personA || !personB) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Both personA and personB are required',
+        message: 'Please provide birth details for both persons'
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    // Calculate enhanced match
+    const enhancedMatchResult = await EnhancedMatchService.calculateEnhancedMatch(personA, personB);
+
+    const response: ApiResponse<EnhancedMatchResult> = {
+      success: true,
+      data: enhancedMatchResult,
+      message: 'Enhanced match calculation completed successfully'
+    };
+
+    res.status(200).json(response);
+  });
+
+  /**
+   * Get comprehensive match analysis
+   */
+  static getComprehensiveAnalysis = ErrorHandler.asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { personA, personB }: MatchRequest = req.body;
+
+    if (!personA || !personB) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Both personA and personB are required',
+        message: 'Please provide birth details for both persons'
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    // Get comprehensive analysis
+    const analysis = await EnhancedMatchService.getComprehensiveAnalysis(personA, personB);
+
+    const response: ApiResponse = {
+      success: true,
+      data: analysis,
+      message: 'Comprehensive analysis completed successfully'
     };
 
     res.status(200).json(response);

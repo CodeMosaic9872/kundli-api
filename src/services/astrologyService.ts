@@ -4,6 +4,9 @@ import { julian, solar, moonposition, planetposition, data, sidereal, sexagesima
 import * as swisseph from 'swisseph';
 import { BirthDetails, AstrologicalData, NakshatraInfo, RashiInfo } from '../types';
 import { GeocodingService } from './geocodingService';
+import { DashaService } from './dashaService';
+import { TransitService } from './transitService';
+import { AspectService } from './aspectService';
 
 export class AstrologyService {
   private static readonly NAKSHATRAS = [
@@ -99,7 +102,8 @@ export class AstrologyService {
       // Calculate house cusps
       const houseCusps = this.calculateHouseCusps(jd, latitude, longitude);
 
-      return {
+      // Calculate enhanced astrological data
+      const basicData = {
         nakshatra,
         rashi,
         longitude: longitude,
@@ -115,6 +119,22 @@ export class AstrologyService {
         ketuPosition: ketu,
         rahuPosition: rahu,
         houseCusps
+      };
+
+      // Calculate Dasha period
+      const dashaPeriod = DashaService.calculateDashaPeriod(basicData);
+
+      // Calculate current transits
+      const currentTransits = TransitService.calculateCurrentTransits(basicData);
+
+      // Calculate planetary aspects
+      const planetaryAspects = AspectService.calculatePlanetaryAspects(basicData, basicData);
+
+      return {
+        ...basicData,
+        dashaPeriod,
+        currentTransits,
+        planetaryAspects
       };
     } catch (error) {
       throw new Error(`Astrological calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
