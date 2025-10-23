@@ -30,9 +30,13 @@ CMD ["npm", "run", "dev"]
 # Production stage
 FROM node:18-alpine AS production
 
-# Install runtime dependencies
+# Install runtime dependencies and build tools for native modules
 RUN apk add --no-cache \
     dumb-init \
+    build-base \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/cache/apk/*
 
 # Create non-root user for security
@@ -54,6 +58,9 @@ COPY . .
 
 # Build the application
 RUN npm run build
+
+# Clean up build tools to reduce image size
+RUN apk del build-base python3 make g++
 
 # Create logs directory
 RUN mkdir -p logs && chown -R kundli:nodejs logs
