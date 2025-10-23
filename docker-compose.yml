@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: kundli-postgres
+    environment:
+      POSTGRES_DB: kundli
+      POSTGRES_USER: kundli_user
+      POSTGRES_PASSWORD: kundli_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./prisma/schema.prisma:/docker-entrypoint-initdb.d/schema.prisma
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kundli_user -d kundli"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kundli-network
+
+  # Kundli API Application
+  kundli-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: kundli-api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://kundli_user:kundli_password@postgres:5432/kundli
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      CORS_ORIGIN: "*"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - kundli-network
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: kundli-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - kundli-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  kundli-network:
+    driver: bridge

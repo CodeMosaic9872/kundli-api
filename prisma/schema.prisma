@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User profiles for storing birth data
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  gender    Gender
+  dateOfBirth DateTime
+  timeOfBirth DateTime
+  placeOfBirth String
+  latitude  Float?
+  longitude Float?
+  timezone  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  matchesAsPersonA Match[] @relation("PersonA")
+  matchesAsPersonB Match[] @relation("PersonB")
+
+  @@map("users")
+}
+
+// Match results storage
+model Match {
+  id        String   @id @default(cuid())
+  personAId String
+  personBId String
+  totalScore Int
+  varnaScore Int
+  vashyaScore Int
+  taraScore Int
+  yoniScore Int
+  grahaMaitriScore Int
+  ganaScore Int
+  bhakootScore Int
+  nadiScore Int
+  
+  // Additional calculated fields
+  personANakshatra String?
+  personBNakshatra String?
+  personARashi String?
+  personBRashi String?
+  personAManglik Boolean?
+  personBManglik Boolean?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  personA User @relation("PersonA", fields: [personAId], references: [id], onDelete: Cascade)
+  personB User @relation("PersonB", fields: [personBId], references: [id], onDelete: Cascade)
+
+  @@unique([personAId, personBId])
+  @@map("matches")
+}
+
+// Static lookup tables for Ashtakoota calculations
+model VarnaRule {
+  id Int @id
+  personAGender Gender
+  personBGender Gender
+  score Int
+  
+  @@map("varna_rules")
+}
+
+model VashyaRule {
+  id Int @id
+  personARashi String
+  personBRashi String
+  score Int
+  
+  @@map("vashya_rules")
+}
+
+model TaraRule {
+  id Int @id
+  personANakshatra String
+  personBNakshatra String
+  score Int
+  
+  @@map("tara_rules")
+}
+
+model YoniRule {
+  id Int @id
+  personANakshatra String
+  personBNakshatra String
+  score Int
+  
+  @@map("yoni_rules")
+}
+
+model GrahaMaitriRule {
+  id Int @id
+  personARashi String
+  personBRashi String
+  score Int
+  
+  @@map("graha_maitri_rules")
+}
+
+model GanaRule {
+  id Int @id
+  personANakshatra String
+  personBNakshatra String
+  score Int
+  
+  @@map("gana_rules")
+}
+
+model BhakootRule {
+  id Int @id
+  personARashi String
+  personBRashi String
+  score Int
+  
+  @@map("bhakoot_rules")
+}
+
+model NadiRule {
+  id Int @id
+  personANakshatra String
+  personBNakshatra String
+  score Int
+  
+  @@map("nadi_rules")
+}
+
+// API Keys for future authentication
+model ApiKey {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  rateLimit Int      @default(100) // requests per window
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("api_keys")
+}
+
+// Enums
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
